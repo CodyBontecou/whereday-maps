@@ -1,0 +1,18 @@
+{
+  "exportDate": "2026-05-04T13:00:00Z",
+  "visits": [
+    { "latitude": 10, "longitude": 20, "arrivedAt": "2026-05-04T12:00:00Z", "departedAt": "2026-05-04T12:30:00Z", "durationMinutes": 30, "locationName": "Invented Home", "source": "automatic", "confirmationStatus": "confirmed" },
+    { "latitude": 10.01, "longitude": 20.01, "arrivedAt": "2026-05-04T13:00:00Z", "durationMinutes": 15, "locationName": "Invented Park", "source": "manual", "confirmationStatus": "confirmed" },
+    { "latitude": 10.01, "longitude": 20.01, "arrivedAt": "2025-05-04T12:00:00Z", "durationMinutes": 45, "locationName": "Invented Park", "source": "imported", "confirmationStatus": "confirmed" },
+    { "latitude": 10.005, "longitude": 20.005, "arrivedAt": "2024-05-04T12:00:00Z", "durationMinutes": 20, "locationName": "Invented Cafe", "source": "imported", "confirmationStatus": "unconfirmed" }
+  ],
+  "points": [
+    { "latitude": 10, "longitude": 20, "timestamp": "2026-05-04T12:00:00Z" },
+    { "latitude": 10.002, "longitude": 20.002, "timestamp": "2026-05-04T12:01:00Z" },
+    { "latitude": 10.004, "longitude": 20.004, "timestamp": "2026-05-04T12:02:00Z" },
+    { "latitude": 30, "longitude": 40, "timestamp": "2026-05-04T12:02:30Z", "isOutlier": true },
+    { "latitude": 10.006, "longitude": 20.006, "timestamp": "2026-05-04T12:03:00Z" },
+    { "latitude": 10.008, "longitude": 20.008, "timestamp": "2026-05-04T12:04:00Z" },
+    { "latitude": 10.01, "longitude": 20.01, "timestamp": "2026-05-04T12:05:00Z" }
+  ]
+}

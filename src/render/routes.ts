@@ -1,3 +1,4 @@
+import { trackSegments } from "../journal";
 import * as L from "leaflet";
 import { LocationPoint } from "../types";
 
@@ -40,7 +41,13 @@ function formatDistance(meters: number): string {
 	return km < 10 ? `${km.toFixed(2)} km` : `${km.toFixed(1)} km`;
 }
 
-export function renderRoutePolyline(
+export function renderRoutePolyline(target: L.LayerGroup, points: LocationPoint[], color: string): L.LatLngTuple[] {
+	const bounds: L.LatLngTuple[] = [];
+	for (const segment of trackSegments(points)) bounds.push(...renderSegment(target,segment,color));
+	return bounds;
+}
+
+function renderSegment(
 	target: L.LayerGroup,
 	points: LocationPoint[],
 	color: string,

@@ -54,6 +54,10 @@ export function collectDays(data: ExportShape): string[] {
 		const d = isoToLocalDay(p.timestamp);
 		if (d) days.add(d);
 	}
+	for (const outing of data.outings ?? []) {
+		const d = isoToLocalDay(outing.startedAt);
+		if (d) days.add(d);
+	}
 	return [...days].sort();
 }
 
@@ -70,7 +74,7 @@ export function filterData(data: ExportShape, filter: FilterState): ExportShape 
 
 	const visits = data.visits ? data.visits.filter((v) => matches(v.arrivedAt)) : null;
 	const points = data.points ? data.points.filter((p) => matches(p.timestamp)) : null;
-	return { visits, points, exportDate: data.exportDate, detectedFormat: data.detectedFormat };
+	return { ...data, visits, points, outings: data.outings?.filter((o) => matches(o.startedAt)), exportDate: data.exportDate, detectedFormat: data.detectedFormat };
 }
 
 export function buildControls(
@@ -89,8 +93,8 @@ export function buildControls(
 		badge.textContent = formatLabel(detectedFormat);
 	}
 
-	const dayWrap = el.createDiv({ cls: "iso-me-control" });
-	dayWrap.createEl("label", { text: "Day", cls: "iso-me-control-label" });
+	const dayWrap = el.createEl("label", { cls: "iso-me-control" });
+	dayWrap.createEl("span", { text: "Day", cls: "iso-me-control-label" });
 	const daySelect = dayWrap.createEl("select", { cls: "iso-me-day-select" });
 	const allOpt = daySelect.createEl("option", { text: "All days" });
 	allOpt.value = "";
@@ -106,32 +110,43 @@ export function buildControls(
 	});
 
 	const timeWrap = el.createDiv({ cls: "iso-me-control iso-me-time-control" });
-	timeWrap.createEl("label", { text: "Time of day", cls: "iso-me-control-label" });
+	timeWrap.createEl("span", { text: "Time of day", cls: "iso-me-control-label" });
 
 	const slidersWrap = timeWrap.createDiv({ cls: "iso-me-time-sliders" });
 
-	const startLabel = slidersWrap.createEl("span", {
+	const startRow = slidersWrap.createEl("label", { cls: "iso-me-time-bound" });
+	startRow.createEl("span", { text: "From", cls: "iso-me-control-label" });
+	const startLabel = startRow.createEl("span", {
 		cls: "iso-me-time-label",
 		text: fmtTime(state.timeStartMin),
 	});
-	const startInput = slidersWrap.createEl("input", { cls: "iso-me-time-range" });
+	const startInput = startRow.createEl("input", { cls: "iso-me-time-range" });
+	startInput.setAttribute("aria-label", "Start time");
 	startInput.type = "range";
 	startInput.min = "0";
 	startInput.max = "1440";
 	startInput.step = "15";
 	startInput.value = String(state.timeStartMin);
 
-	const endInput = slidersWrap.createEl("input", { cls: "iso-me-time-range" });
+	const endRow = slidersWrap.createEl("label", { cls: "iso-me-time-bound" });
+	endRow.createEl("span", { text: "Until", cls: "iso-me-control-label" });
+	const endLabel = endRow.createEl("span", {
+		cls: "iso-me-time-label",
+		text: fmtTime(state.timeEndMin),
+	});
+	const endInput = endRow.createEl("input", { cls: "iso-me-time-range" });
+	endInput.setAttribute("aria-label", "End time");
 	endInput.type = "range";
 	endInput.min = "0";
 	endInput.max = "1440";
 	endInput.step = "15";
 	endInput.value = String(state.timeEndMin);
 
-	const endLabel = slidersWrap.createEl("span", {
-		cls: "iso-me-time-label",
-		text: fmtTime(state.timeEndMin),
-	});
+	const updateAccessibleValues = () => {
+		startInput.setAttribute("aria-valuetext", fmtTime(state.timeStartMin));
+		endInput.setAttribute("aria-valuetext", fmtTime(state.timeEndMin));
+	};
+	updateAccessibleValues();
 
 	startInput.addEventListener("input", () => {
 		let v = Number(startInput.value);
@@ -139,6 +154,7 @@ export function buildControls(
 		state.timeStartMin = v;
 		startInput.value = String(v);
 		startLabel.textContent = fmtTime(v);
+		updateAccessibleValues();
 	});
 	startInput.addEventListener("change", () => onChange({ ...state }));
 
@@ -148,6 +164,7 @@ export function buildControls(
 		state.timeEndMin = v;
 		endInput.value = String(v);
 		endLabel.textContent = fmtTime(v);
+		updateAccessibleValues();
 	});
 	endInput.addEventListener("change", () => onChange({ ...state }));
 
@@ -162,6 +179,7 @@ export function buildControls(
 		endInput.value = String(state.timeEndMin);
 		startLabel.textContent = fmtTime(state.timeStartMin);
 		endLabel.textContent = fmtTime(state.timeEndMin);
+		updateAccessibleValues();
 		onChange({ ...state });
 	});
 

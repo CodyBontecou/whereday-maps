@@ -1,0 +1,30 @@
+{
+  "exportDate": "2026-05-05T12:00:00Z",
+  "totalOutings": 3,
+  "outings": [
+    {
+      "id": "synthetic-outing-1", "title": "Invented morning walk", "sequenceNumber": 1,
+      "startedAt": "2026-05-04T08:00:00Z", "endedAt": "2026-05-04T08:30:00Z",
+      "effectiveEndAt": "2026-05-04T08:30:00Z", "durationSeconds": 1800,
+      "distanceMeters": 1500, "averageSpeedMetersPerSecond": 0.833,
+      "pointCount": 100, "outlierCount": 2, "visitCount": 1,
+      "isInferred": false, "isActive": false,
+      "notes": "Synthetic fixture only. This summary contains no track geometry.",
+      "startLatitude": 10, "startLongitude": 20, "endLatitude": 10.01, "endLongitude": 20.01
+    },
+    {
+      "id": "synthetic-outing-2", "title": "Invented inferred outing", "sequenceNumber": 2,
+      "startedAt": "2026-05-05T08:00:00Z", "endedAt": "2026-05-05T08:45:00Z",
+      "effectiveEndAt": "2026-05-05T08:45:00Z", "durationSeconds": 2700,
+      "distanceMeters": 0, "pointCount": 0, "outlierCount": 0, "visitCount": 0,
+      "isInferred": true, "isActive": false
+    },
+    {
+      "id": "synthetic-outing-3", "title": "Invented active outing", "sequenceNumber": 3,
+      "startedAt": "2026-05-05T11:00:00Z", "effectiveEndAt": "2026-05-05T12:00:00Z",
+      "durationSeconds": 3600, "distanceMeters": 2400, "pointCount": 150,
+      "outlierCount": 0, "visitCount": 0, "isInferred": false, "isActive": true,
+      "startLatitude": 10.02, "startLongitude": 20.02, "endLatitude": 10.03, "endLongitude": 20.03
+    }
+  ]
+}

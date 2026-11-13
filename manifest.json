@@ -1,9 +1,9 @@
 {
 	"id": "iso-me-maps",
-	"name": "iso.me Maps",
+	"name": "Whereday Maps",
 	"version": "0.7.15",
 	"minAppVersion": "1.12.0",
-	"description": "Render Leaflet maps inline from iso.me exports. Supports JSON, CSV, Markdown, OwnTracks, Overland, and GPX formats with stats and duration-encoded markers.",
+	"description": "Render Leaflet maps inline from Whereday (formerly iso.me) exports. Supports JSON, CSV, Markdown, Whereday GeoJSON, OwnTracks, Overland, and GPX formats with stats and duration-encoded markers.",
 	"author": "Cody Bontecou",
 	"authorUrl": "https://github.com/codybontecou",
 	"isDesktopOnly": false

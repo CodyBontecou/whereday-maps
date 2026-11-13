@@ -16,6 +16,7 @@ export type TileProviderId =
 	| "opentopomap"
 	| "esri-world-imagery"
 	| "osm"
+	| "none"
 	| "custom";
 
 export interface TileProviderPreset {
@@ -33,7 +34,7 @@ const CARTO_ATTR = `${OSM_ATTR} &copy; <a href="https://carto.com/attributions">
 export const TILE_PROVIDERS: TileProviderPreset[] = [
 	{
 		id: "carto-voyager",
-		label: "CartoDB Voyager (default)",
+		label: "CartoDB Voyager",
 		url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
 		attribution: CARTO_ATTR,
 	},
@@ -65,9 +66,16 @@ export const TILE_PROVIDERS: TileProviderPreset[] = [
 	{
 		id: "osm",
 		label: "OpenStreetMap (mobile only — desktop is blocked)",
-		url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+		url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 		attribution: OSM_ATTR,
 		note: "OSM's tile servers reject requests from desktop Obsidian (Electron referer policy). Works on the mobile app.",
+	},
+	{
+		id: "none",
+		label: "None (local overlays only, default)",
+		url: "",
+		attribution: "",
+		note: "Draw visits and routes on a neutral background without requesting map tiles. An explicit per-map provider can turn tiles back on.",
 	},
 	{
 		id: "custom",
@@ -97,12 +105,12 @@ export interface IsoMeSettings {
 	showOutliersByDefault: boolean;
 }
 
-// OSM's volunteer tile servers reject requests from Electron because the
-// Obsidian desktop client's referer header doesn't match their policy. Default
-// to CartoDB Voyager (OSM-styled, no referer requirement, free attribution use).
+// Keep the legacy URL recognizable without silently changing saved providers.
+// New installs start without external tile requests; provider access policies
+// can change independently of the plugin (Carto may require an API key).
 export const LEGACY_OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-const DEFAULT_PROVIDER = TILE_PROVIDERS[0];
+const DEFAULT_PROVIDER = TILE_PROVIDERS.find((provider) => provider.id === "none")!;
 
 export const DEFAULT_SETTINGS: IsoMeSettings = {
 	tileProvider: DEFAULT_PROVIDER.id,
@@ -136,7 +144,7 @@ const EXPORT_FOLDER_GRANULARITY_OPTIONS: Record<ExportFolderGranularity, string>
 type IsoMeSettingKey = Extract<keyof IsoMeSettings, string>;
 
 export function findProviderByUrl(url: string): TileProviderPreset | undefined {
-	return TILE_PROVIDERS.find((p) => p.id !== "custom" && p.url === url);
+	return TILE_PROVIDERS.find((p) => p.id !== "custom" && p.id !== "none" && (p.url === url || (p.id === "osm" && url === LEGACY_OSM_TILE_URL)));
 }
 
 export function getProvider(id: TileProviderId): TileProviderPreset {
@@ -148,6 +156,7 @@ export function isTileProviderId(value: unknown): value is TileProviderId {
 }
 
 export interface TileLayerConfig {
+	enabled: boolean;
 	url: string;
 	attribution: string;
 }
@@ -164,15 +173,20 @@ function nonEmptyTrimmed(value: string | undefined): string | undefined {
 }
 
 export function resolveTileLayer(
-	settings: Pick<IsoMeSettings, "tileUrl" | "tileAttribution">,
+	settings: Pick<IsoMeSettings, "tileUrl" | "tileAttribution"> & Partial<Pick<IsoMeSettings, "tileProvider">>,
 	overrides: TileLayerOverrides = {},
 ): TileLayerConfig {
 	let url = settings.tileUrl;
 	let attribution = settings.tileAttribution;
 
-	const providerId = nonEmptyTrimmed(overrides.tile_provider)?.toLowerCase();
-	if (providerId && isTileProviderId(providerId)) {
-		const provider = getProvider(providerId);
+	const overrideProvider = nonEmptyTrimmed(overrides.tile_provider)?.toLowerCase();
+	const providerId = overrideProvider && isTileProviderId(overrideProvider)
+		? overrideProvider : settings.tileProvider;
+	// Privacy choice wins over stale saved URLs and per-block tile_url values.
+	// Re-enable networking only with an explicit online tile_provider override.
+	if (providerId === "none") return { enabled: false, url: "", attribution: "" };
+	if (overrideProvider && isTileProviderId(overrideProvider)) {
+		const provider = getProvider(overrideProvider);
 		if (provider.id !== "custom") {
 			url = provider.url;
 			attribution = provider.attribution;
@@ -191,7 +205,7 @@ export function resolveTileLayer(
 		attribution = overrides.tile_attribution ?? "";
 	}
 
-	return { url, attribution };
+	return { enabled: url.trim().length > 0, url, attribution };
 }
 
 function tileProviderOptions(): Record<string, string> {
@@ -250,7 +264,7 @@ export class IsoMeSettingTab extends PluginSettingTab {
 		this.addTextSetting(
 			"exportsFolder",
 			"Exports folder",
-			"Vault-relative root folder holding your iso.me exports (e.g. `exports`). Bare `source:` filenames in code blocks are looked up here, and date keywords like `today` / `yesterday` search this folder plus the nested structure below.",
+			"Vault-relative root folder holding your Whereday exports (e.g. `exports`). Bare `source:` filenames in code blocks are looked up here, and date keywords like `today` / `yesterday` search this folder plus the nested structure below.",
 			"exports",
 		);
 		this.addDropdownSetting(
@@ -262,19 +276,19 @@ export class IsoMeSettingTab extends PluginSettingTab {
 		this.addTextSetting(
 			"exportFolderCustomPathTemplate",
 			"Custom folder path template",
-			`Used when Export folder structure is Custom. Use / for folders. Variables: ${EXPORT_FOLDER_PATH_TEMPLATE_VARIABLES.map((v) => `{${v}}`).join(", ")}. iso.me's DATED preset uses {year}/{year}-{month}.`,
+			`Used when Export folder structure is Custom. Use / for folders. Variables: ${EXPORT_FOLDER_PATH_TEMPLATE_VARIABLES.map((v) => `{${v}}`).join(", ")}. Whereday's DATED preset uses {year}/{year}-{month}.`,
 			DEFAULT_CUSTOM_EXPORT_FOLDER_PATH_TEMPLATE,
 		);
 		this.addTextSetting(
 			"exportFilenamePattern",
 			"Export filename/path pattern",
-			"Glob template used to find an export by date. Supports iso.me filename tokens like `{date}`, `{year}`, `{month}`, `{day}`, `{type}`, and `{format}`; `{type}`, `{format}`, time, and unknown tokens become wildcards. You can include folders here (e.g. `{year}/{year}-{month}/Daily Track - {date}`) or use the folder structure setting above. Default `*{date}*` matches any export filename containing the date.",
+			"Glob template used to find an export by date. Supports Whereday filename tokens like `{date}`, `{year}`, `{month}`, `{day}`, `{type}`, and `{format}`; `{type}`, `{format}`, time, and unknown tokens become wildcards. You can include folders here (e.g. `{year}/{year}-{month}/Daily Track - {date}`) or use the folder structure setting above. Default `*{date}*` matches any export filename containing the date.",
 			DEFAULT_SETTINGS.exportFilenamePattern,
 		);
 		this.addTextSetting(
 			"exportDateFormat",
 			"Export date format",
-			"How dates are spelled in your export filenames. Tokens: `YYYY`, `MM`, `DD`. Default `YYYY-MM-DD` matches iso.me's built-in export naming.",
+			"How dates are spelled in your export filenames. Tokens: `YYYY`, `MM`, `DD`. Default `YYYY-MM-DD` matches Whereday's built-in export naming.",
 			DEFAULT_SETTINGS.exportDateFormat,
 		);
 
@@ -292,14 +306,14 @@ export class IsoMeSettingTab extends PluginSettingTab {
 		this.addTextSetting(
 			"outlierColor",
 			"GPS glitch (outlier) color",
-			"Color for points iso.me has flagged as outliers when shown.",
+			"Color for points Whereday has flagged as outliers when shown.",
 		);
 		this.addToggleSetting("showVisitsByDefault", "Show visit markers by default");
 		this.addToggleSetting("showRoutesByDefault", "Show routes by default");
 		this.addToggleSetting(
 			"showOutliersByDefault",
 			"Show GPS glitches (outliers) by default",
-			"Render points iso.me has flagged as outliers as small scatter dots. Outliers are always excluded from route polylines, route distance, and average speed.",
+			"Render points Whereday has flagged as outliers as small scatter dots. Outliers are always excluded from route polylines, route distance, and average speed.",
 		);
 	}
 
@@ -382,7 +396,7 @@ export class IsoMeSettingTab extends PluginSettingTab {
 			case "tileProvider": {
 				const id = isTileProviderId(value) ? value : DEFAULT_SETTINGS.tileProvider;
 				settings.tileProvider = id;
-				if (id !== "custom") {
+				if (id !== "custom" && id !== "none") {
 					const preset = getProvider(id);
 					settings.tileUrl = preset.url;
 					settings.tileAttribution = preset.attribution;
@@ -452,7 +466,7 @@ export class IsoMeSettingTab extends PluginSettingTab {
 
 	private tileProviderDescription(): string {
 		const activeProvider = getProvider(this.plugin.settings.tileProvider);
-		const parts = ["Pick a basemap. Choose Custom to use your own tile URL."];
+		const parts = ["Pick a basemap. Choose None to avoid tile requests, or Custom to use your own tile URL."];
 		if (activeProvider.note) parts.push(activeProvider.note);
 		parts.push(
 			"Already-open notes keep their current basemap until you reload the note (or Obsidian).",

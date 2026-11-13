@@ -1,3 +1,4 @@
+import { visitEvidenceJSON } from "./provenance";
 import { ExportShape, LocationPoint, Visit } from "./types";
 
 export class MarkdownParseError extends Error {
@@ -252,6 +253,7 @@ function parseVisitsTable(lines: string[]): Visit[] {
 		const durationMinutes = durationStr ? parseDurationText(durationStr) : null;
 
 		visits.push({
+			...visitEvidenceJSON(cleanField(get("visit metadata"))),
 			latitude: lat,
 			longitude: lon,
 			arrivedAt,
@@ -260,6 +262,8 @@ function parseVisitsTable(lines: string[]): Visit[] {
 			locationName: cleanField(get("location")),
 			address: cleanField(get("address")),
 			notes: cleanField(get("notes")),
+			source: cleanField(get("source")),
+			confirmationStatus: cleanField(get("status")),
 		});
 	}
 
@@ -276,7 +280,23 @@ function parseTableRow(line: string): string[] | null {
 	const trimmed = line.trim();
 	if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) return null;
 	const inner = trimmed.slice(1, -1);
-	return inner.split("|").map((c) => c.trim());
+	const cells: string[] = [];
+	let cell = "";
+	for (let i = 0; i < inner.length; i++) {
+		const ch = inner[i];
+		// Whereday escapes backslashes before pipes. Decode in one pass so
+		// an escaped backslash before a delimiter does not swallow that delimiter.
+		if (ch === "\\" && (inner[i + 1] === "\\" || inner[i + 1] === "|")) {
+			cell += inner[++i];
+		} else if (ch === "|") {
+			cells.push(cell.trim());
+			cell = "";
+		} else {
+			cell += ch;
+		}
+	}
+	cells.push(cell.trim());
+	return cells;
 }
 
 function isSeparatorRow(cells: string[]): boolean {
@@ -366,7 +386,9 @@ function classifyH1(heading: string): SectionKind {
 	const h = heading.toLowerCase();
 	if (h.includes("location points")) return "points";
 	if (h.includes("complete export")) return "skip";
-	if (h === "visits" || h.includes("iso.me")) return "visits";
+	// Outing journals have their own schema; never silently treat them as visits.
+	if (h.includes("outings export")) return "skip";
+	if (h === "visits" || h.includes("iso.me") || h === "whereday export") return "visits";
 	return "skip";
 }
 
@@ -409,7 +431,7 @@ export function parseExportMarkdown(text: string): ExportShape {
 
 	if (visits === null && points === null) {
 		throw new MarkdownParseError(
-			'Unrecognized markdown. Expected H1 "# iso.me Export", "# iso.me Location Points Export", or "# iso.me Complete Export".',
+			'Unrecognized markdown. Expected Whereday or iso.me visit/location-points export headings. Outing journals are not supported yet.',
 		);
 	}
 

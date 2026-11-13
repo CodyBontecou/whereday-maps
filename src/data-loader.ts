@@ -1,3 +1,5 @@
+import { visitEvidence } from "./provenance";
+import { mergeExports } from "./merge-exports";
 import { App, normalizePath } from "obsidian";
 import { CSVParseError, parseExportCSV } from "./csv-parser";
 import { isDateKeyword, resolveDateKeyword } from "./date-resolver";
@@ -9,10 +11,12 @@ import {
 	normalizeVaultFolder,
 } from "./export-layout";
 import { GPXParseError, parseGPX } from "./gpx-parser";
+import { isGeoJSONCollection, parseGeoJSON } from "./geojson-parser";
 import { MarkdownParseError, parseExportMarkdown } from "./markdown-parser";
 import { isOverlandJSON, parseOverland } from "./overland-parser";
 import { isOwnTracksJSON, parseOwnTracks } from "./owntracks-parser";
-import { DetectedFormat, ExportShape, LocationPoint, Visit } from "./types";
+import { DetectedFormat, ExportShape, LocationPoint, Visit, Outing } from "./types";
+import { parseOutings } from "./outing-parser";
 
 export interface SourceResolutionSettings {
 	exportsFolder?: string;
@@ -39,6 +43,7 @@ function coerceVisit(raw: unknown): Visit | null {
 	if (!isFiniteNumber(r.latitude) || !isFiniteNumber(r.longitude)) return null;
 	if (typeof r.arrivedAt !== "string") return null;
 	return {
+		...visitEvidence(r),
 		latitude: r.latitude,
 		longitude: r.longitude,
 		arrivedAt: r.arrivedAt,
@@ -47,6 +52,8 @@ function coerceVisit(raw: unknown): Visit | null {
 		locationName: typeof r.locationName === "string" ? r.locationName : null,
 		address: typeof r.address === "string" ? r.address : null,
 		notes: typeof r.notes === "string" ? r.notes : null,
+		source: typeof r.source === "string" ? r.source : null,
+		confirmationStatus: typeof r.confirmationStatus === "string" ? r.confirmationStatus : null,
 	};
 }
 
@@ -82,6 +89,11 @@ function parseJSONExport(raw: string, path: string): ExportShape {
 		throw new DataLoadError("Export must be a JSON object", path);
 	}
 
+	if (isGeoJSONCollection(parsed)) return parseGeoJSON(parsed);
+	if ((parsed as Record<string, unknown>).type === "FeatureCollection") {
+		throw new DataLoadError("GeoJSON FeatureCollection requires a features array.", path);
+	}
+
 	// Format sniffing: OwnTracks, Overland, or standard iso.me JSON
 	if (isOwnTracksJSON(parsed)) {
 		return { ...parseOwnTracks(parsed as unknown[]), detectedFormat: "owntracks" };
@@ -94,10 +106,11 @@ function parseJSONExport(raw: string, path: string): ExportShape {
 	const root = parsed as Record<string, unknown>;
 	const visitsRaw = Array.isArray(root.visits) ? root.visits : null;
 	const pointsRaw = Array.isArray(root.points) ? root.points : null;
+	const outingsRaw = Array.isArray(root.outings) ? root.outings : null;
 
-	if (!visitsRaw && !pointsRaw) {
+	if (!visitsRaw && !pointsRaw && !outingsRaw) {
 		throw new DataLoadError(
-			"Export contains neither `visits` nor `points` arrays, and does not match OwnTracks or Overland format.",
+			"Export contains no `visits`, `points`, or `outings` arrays, and does not match Whereday GeoJSON, OwnTracks or Overland format.",
 			path,
 		);
 	}
@@ -113,7 +126,8 @@ function parseJSONExport(raw: string, path: string): ExportShape {
 		visits,
 		points,
 		exportDate: typeof root.exportDate === "string" ? root.exportDate : undefined,
-		detectedFormat: "iso-me-json",
+		outings: outingsRaw ? parseOutings(outingsRaw) : undefined,
+		detectedFormat: outingsRaw ? "whereday-outings" : "iso-me-json",
 	};
 }
 
@@ -125,7 +139,7 @@ function detectFormat(path: string): "gpx" | "json" | "csv" | "markdown" {
 	return "json";
 }
 
-const SUPPORTED_EXTENSIONS = [".json", ".csv", ".md", ".markdown", ".gpx"];
+const SUPPORTED_EXTENSIONS = [".json", ".geojson", ".csv", ".md", ".markdown", ".gpx"];
 
 function hasSupportedExtension(path: string): boolean {
 	const lower = path.toLowerCase();
@@ -400,41 +414,16 @@ export function preprocessSources(
 	return out;
 }
 
+export async function resolveExportPaths(app: App, sources: string[], settings: SourceResolutionSettings = {}): Promise<string[]> {
+	return expandSourceGroups(app, preprocessSourceGroups(sources, settings), settings);
+}
+
 export async function loadExports(
 	app: App,
 	sources: string[],
 	settings: SourceResolutionSettings = {},
 ): Promise<ExportShape> {
-	const resolved = preprocessSourceGroups(sources, settings);
-	const expanded = await expandSourceGroups(app, resolved, settings);
+	const expanded = await resolveExportPaths(app, sources, settings);
 	const all = await Promise.all(expanded.map((s) => loadExport(app, s)));
-	const visits: Visit[] = [];
-	const points: LocationPoint[] = [];
-	let exportDate: string | undefined;
-	const detectedFormats: DetectedFormat[] = [];
-	for (const e of all) {
-		if (e.visits) visits.push(...e.visits);
-		if (e.points) points.push(...e.points);
-		if (!exportDate && e.exportDate) exportDate = e.exportDate;
-		if (e.detectedFormat && !detectedFormats.includes(e.detectedFormat)) {
-			detectedFormats.push(e.detectedFormat);
-		}
-	}
-	// Determine the canonical detected format for the combined shape.
-	// Priority: if there's just one, use it; otherwise pick the richest.
-	const resolvedFormat: DetectedFormat | undefined =
-		detectedFormats.length === 1
-			? detectedFormats[0]
-			: detectedFormats.length > 0
-				? (detectedFormats.includes("iso-me-json") ? "iso-me-json" :
-					 detectedFormats.includes("iso-me-csv") ? "iso-me-csv" :
-					 detectedFormats.includes("iso-me-markdown") ? "iso-me-markdown" :
-					 detectedFormats[0])
-				: undefined;
-	return {
-		visits: visits.length > 0 ? visits : null,
-		points: points.length > 0 ? points : null,
-		exportDate,
-		detectedFormat: resolvedFormat,
-	};
+	return mergeExports(all, expanded);
 }

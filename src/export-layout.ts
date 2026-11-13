@@ -194,7 +194,7 @@ function ensureLookupGlobCanMatchExtension(path: string): string {
 	const { name } = splitDirAndName(path);
 	if (name.includes("*") || name.includes("?")) return path;
 	const lower = name.toLowerCase();
-	const hasKnownExtension = [".json", ".csv", ".md", ".markdown", ".gpx"].some(
+	const hasKnownExtension = [".json", ".geojson", ".csv", ".md", ".markdown", ".gpx"].some(
 		(ext) => lower.endsWith(ext),
 	);
 	return hasKnownExtension ? path : `${path}*`;

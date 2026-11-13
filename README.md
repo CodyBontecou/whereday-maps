@@ -1,8 +1,21 @@
-# iso.me Maps for Obsidian
+# Whereday Maps for Obsidian
+
+Formerly **iso.me Maps**. Source repository: [CodyBontecou/whereday-maps](https://github.com/CodyBontecou/whereday-maps). The npm package is `obsidian-whereday-maps`. The installed Obsidian plugin ID (`iso-me-maps`), vault install folder, and saved settings remain unchanged for compatibility; the visible plugin name is **Whereday Maps**. Both `whereday` and legacy `iso-me` code fences render the same maps; existing notes do not need migration.
+
+````markdown
+```whereday
+source: exports/day.md
+title: My day
+show_stats: true
+interactive: true
+```
+````
+
+Current Whereday English Markdown visit, location-point, and complete exports are supported, including escaped pipes/backslashes in table cells. Include coordinates when exporting visits. Localized date/time headings, outing Markdown journals, backup ZIPs, and KML are not supported yet. Native outing-summary JSON and CSV are supported (details below). Native Whereday GeoJSON Point collections are supported (see below); arbitrary GeoJSON lines/polygons are not. For outing route geometry, use a separate points export in a supported format; outing-summary JSON has no tracks.
 
 <img width="500" alt="CleanShot 2026-05-06 at 16 40 20@2x" src="https://github.com/user-attachments/assets/afb51f1f-29c4-4c5a-b717-073010c55c8e" />
 
-Render interactive Leaflet maps inline in Obsidian notes from [iso.me](https://apps.apple.com/us/app/iso-me/id6761960794) exports and compatible location-tracking formats.
+Render interactive Leaflet maps inline in Obsidian notes from [Whereday](https://whereday.com) (formerly iso.me) exports and compatible location-tracking formats.
 
 Privacy note: the plugin reads only the export files/folders you reference in `iso-me` code blocks. It does not upload vault content; network activity is limited to loading map tiles from the selected tile provider. See [SECURITY.md](SECURITY.md) for the full disclosure.
 
@@ -12,10 +25,50 @@ The plugin registers an Obsidian Markdown code block named `iso-me`. Add a fence
 
 ---
 
+## Compact visualizations
+
+Add one independent figure to any note: a **stay strip**, **day dial**,
+**route card**, **return calendar**, or **weekly rhythm**. Each has small controls
+for exploring the loaded data and uses Whereday's paper and ink palette.
+
+````markdown
+```whereday
+source: exports
+view: stay-strip
+date: 2026-11-11
+auto_refresh: true
+```
+````
+
+Use the corresponding **Insert …** command, or change `view` to `day-dial`,
+`route-card`, `return-calendar`, or `weekly-rhythm`. These figures read exports
+without writing journal notes. [Options and data semantics](docs/visualizations.md)
+· [Five copyable examples](examples/visualizations.md).
+
+## Field Journal
+
+Opt into Whereday's daily dial, editable Field Notes, reviewed Place Passports,
+Evidence Review, Trip Chapters, export receipts and saved local Recall Queries:
+
+````markdown
+```whereday
+source: exports
+journal: true
+show_receipt: true
+auto_refresh: true
+tile_provider: none
+```
+````
+
+Or run **Whereday Maps: Insert Field Journal** in the command palette.
+[Read the journal guide](docs/field-journal.md) for writing behavior, identity,
+privacy, options and backup instructions. These tools write notes only through
+labeled actions. Legacy blocks retain their existing appearance.
+
 ## Quick start
 
-1. Install and enable **iso.me Maps** in Obsidian.
-2. Export data from the iso.me iOS app. JSON combined exports are the easiest starting point.
+1. Install and enable **Whereday Maps** in Obsidian.
+2. Export data from Whereday. JSON combined exports are the easiest starting point.
 3. Put the export in your vault, for example `exports/iso.me-2026-05-04.json`.
 4. Add this to any note:
 
@@ -35,7 +88,8 @@ show_routes: true
 
 ## What it renders
 
-- **Visit markers** — duration-encoded circle markers. Longer stays are larger and more opaque. Popups show place name, address, arrival/departure time, duration, and notes when available.
+- **Visit markers** — duration-encoded circle markers. Longer stays are larger and more opaque. Popups show place name, address, arrival/departure time, duration, notes, and exported visit source/confirmation status when available.
+- **Outing summaries and endpoints** — expandable cards from native outing JSON, with recorded duration/distance, notes, snapshot status and endpoint focus. No route lines are manufactured from summaries.
 - **Route polylines** — connected GPS tracks with green start marker, red end marker, and route popup showing path distance and straight-line distance.
 - **GPS glitch / outlier markers** — optional scatter markers for points flagged as outliers by iso.me. Outliers are hidden by default and are always excluded from routes, route distance, and average speed.
 - **Stats bar** — export format badge, visit count, point count, distance, average speed, date range, and top repeated place.
@@ -43,11 +97,13 @@ show_routes: true
 
 Supported formats:
 
-- iso.me JSON
+- Whereday / iso.me visit and point JSON
+- Whereday outing-summary JSON and CSV
 - iso.me CSV
 - iso.me Markdown
 - OwnTracks JSON
-- Overland JSON / GeoJSON
+- Overland JSON
+- Whereday GeoJSON (`.geojson` or `.json`)
 - GPX
 
 ---
@@ -63,7 +119,7 @@ If the plugin is available in Community Plugins:
 1. Open **Settings → Community plugins**.
 2. Disable **Restricted mode** if needed.
 3. Click **Browse**.
-4. Search for **iso.me Maps**.
+4. Search for **Whereday Maps** (older published versions may still be named **iso.me Maps**).
 5. Click **Install**, then **Enable**.
 
 #### Manual install from a release
@@ -80,7 +136,7 @@ If the plugin is available in Community Plugins:
 
 3. Copy the three files into that folder.
 4. Restart Obsidian or run **Reload app without saving** from the command palette.
-5. Open **Settings → Community plugins** and enable **iso.me Maps**.
+5. Open **Settings → Community plugins** and enable **Whereday Maps**.
 
 #### Development install from this repository
 
@@ -94,7 +150,7 @@ Then reload Obsidian and enable the plugin.
 
 ### 2. Export data from iso.me
 
-In the iso.me iOS app, export the data you want to map. Recommended options:
+In Whereday, export the data you want to map. Recommended options:
 
 - Use **JSON** for the simplest one-file workflow.
 - Use a combined export containing both **visits** and **points** when possible.
@@ -126,7 +182,7 @@ Your vault/
 
 ### 4. Configure plugin settings
 
-Open **Settings → iso.me Maps**.
+Open **Settings → Whereday Maps**.
 
 Recommended first-time settings:
 
@@ -137,7 +193,7 @@ Recommended first-time settings:
 | **Custom folder path template** | `{year}/{year}-{month}` | Matches iso.me's DATED preset folder layout when folder structure is `Custom template`. |
 | **Export filename/path pattern** | `*{date}*` | Matches any file containing the resolved date. |
 | **Export date format** | `YYYY-MM-DD` | Matches iso.me's default date format in filenames. |
-| **Tile provider** | CartoDB Voyager | Works in desktop and mobile Obsidian. |
+| **Tile provider** | A provider you have access to | New installs use None. Choose an online provider only if you want external map tiles; see tile troubleshooting below. |
 
 ### 5. Add a map block
 
@@ -187,9 +243,10 @@ title: April trip
 | `auto_fit` | boolean | No | `true` | Automatically centers and zooms to the visible visits/routes/outliers. Set to `false` to use `center` and `zoom` instead. |
 | `show_visits` | boolean | No | plugin **Show visit markers by default** (`true`) | Shows visit/stay markers when the export contains visits. |
 | `show_routes` | boolean | No | plugin **Show routes by default** (`true`) | Shows GPS route polylines when the export contains points. Outliers are excluded. |
+| `show_outings` | boolean | No | `true` | Shows native JSON outing cards and available endpoint markers. Does not create route tracks. |
 | `show_stats` | boolean | No | `false` | Shows the stats bar above the map. This is per-block only; there is no settings-tab default for stats. |
 | `interactive` | boolean | No | `false` | Shows day and time-of-day filters above the map. Filters re-render visits, routes, and outliers. |
-| `tile_provider` | tile provider ID | No | plugin **Tile provider** | Overrides the basemap preset for this map only. Accepts `carto-voyager`, `carto-positron`, `carto-dark-matter`, `opentopomap`, `esri-world-imagery`, `osm`, or `custom`. |
+| `tile_provider` | tile provider ID | No | plugin **Tile provider** | Overrides the basemap preset for this map only. Accepts `carto-voyager`, `carto-positron`, `carto-dark-matter`, `opentopomap`, `esri-world-imagery`, `osm`, `none`, or `custom`. |
 | `tile_url` | Leaflet tile URL | No | selected provider URL | Overrides the basemap URL for this map only. For arbitrary/custom URLs, also provide `tile_attribution`. Alias: `tile_layer_url`. |
 | `tile_attribution` | HTML string | No | selected provider attribution | Overrides attribution for this map only. Required for most custom tile URLs. |
 
@@ -197,7 +254,7 @@ title: April trip
 
 ### Parameter syntax rules
 
-- The code fence language must be exactly `iso-me`:
+- The code fence language must be exactly `whereday` or the backwards-compatible `iso-me`:
 
   ````markdown
   ```iso-me
@@ -263,6 +320,31 @@ sources: exports/visits.md, exports/points.md
 
 If both `source` and `sources` are present, all listed sources are loaded and merged.
 
+### No-basemap mode (no tile requests)
+
+Choose **None (local overlays only)** in the plugin's Tile provider setting,
+or disable tiles for one map:
+
+````markdown
+```whereday
+source: exports/day.geojson
+tile_provider: none
+show_stats: true
+interactive: true
+```
+````
+
+Visits, routes, filters, stats, pan, and zoom remain available on a neutral
+background. A visible notice confirms that the basemap is off. This is not an
+offline street map: it contains no geographic context or cached map tiles.
+
+`none` wins over `tile_url`, including stale saved URLs. If the default is None,
+an explicit per-map online `tile_provider` (including `custom`) re-enables tiles
+for that block. A `tile_url` alone does not re-enable them. Selecting None retains
+your saved URL/attribution for later use; it does not erase stored credentials.
+Already-rendered maps need reloading after settings changes. This controls only
+this plugin's tile requests, not Obsidian Sync, other plugins, or external links.
+
 ### Per-map tile providers
 
 The settings tab controls the default basemap, but each map block can override it without changing any other map. If both `tile_provider` and `tile_url` are present, the custom `tile_url` wins. For example, keep Esri World Imagery as your default and switch a single map to a light Carto layer:
@@ -301,7 +383,7 @@ A source can be any of the following:
 Supported file extensions are:
 
 ```text
-.json, .csv, .md, .markdown, .gpx
+.json, .geojson, .csv, .md, .markdown, .gpx
 ```
 
 ### Date keywords
@@ -443,27 +525,30 @@ If the pattern does not contain a date-aware token, the plugin appends `*<date>*
 
 ## Plugin settings reference
 
-Open **Settings → iso.me Maps** to configure defaults.
+Open **Settings → Whereday Maps** to configure defaults.
 
 ### Tile settings
 
 | Setting | Stored key | Default | Description |
 |---|---|---|---|
-| Tile provider | `tileProvider` | `carto-voyager` | Basemap preset. |
-| Tile layer URL | `tileUrl` | CartoDB Voyager URL | Leaflet tile URL template. Visible when provider is **Custom**. |
-| Tile attribution | `tileAttribution` | Carto/OpenStreetMap attribution | HTML attribution shown in the map corner. Visible when provider is **Custom**. |
+| Tile provider | `tileProvider` | `none` | Local overlays only until you choose an online provider. |
+| Tile layer URL | `tileUrl` | empty | Leaflet tile URL template. Visible when provider is **Custom**. |
+| Tile attribution | `tileAttribution` | empty | HTML attribution shown in the map corner. Visible when provider is **Custom**. |
 
 Available tile provider IDs:
 
 | ID | Label | Notes |
 |---|---|---|
-| `carto-voyager` | CartoDB Voyager | Default. Good general-purpose map. |
+| `carto-voyager` | CartoDB Voyager | Optional general-purpose map; provider may require an API key. |
 | `carto-positron` | CartoDB Positron | Light basemap. |
 | `carto-dark-matter` | CartoDB Dark Matter | Dark basemap. |
 | `opentopomap` | OpenTopoMap | Topographic map. |
 | `esri-world-imagery` | Esri World Imagery | Satellite imagery. |
 | `osm` | OpenStreetMap | Mobile only; desktop Obsidian/Electron is blocked by OSM tile server referer policy. |
+| `none` | None (local overlays only, default) | New-install default. No tile requests; visits/routes on a neutral background. |
 | `custom` | Custom | Use your own Leaflet tile URL and attribution. |
+
+Existing saved provider choices and custom URLs are preserved, including pre-dropdown installs whose provider is inferred from their saved URL. Previously saved OSM URLs are no longer silently switched to Carto. Online providers remain subject to their access/usage policies; choose None or another authorized provider if yours is unavailable.
 
 Tile setting changes apply to newly rendered maps. Already-open notes may need to be reloaded. These defaults can be overridden per map block with `tile_provider`, `tile_url`, and `tile_attribution`.
 
@@ -527,6 +612,8 @@ Visit objects:
 | `locationName` | No | string or null | Place name shown in popup and top-place stats. |
 | `address` | No | string or null | Address shown in popup. |
 | `notes` | No | string or null | Notes shown in popup. |
+| `source` | No | string or null | Visit provenance: `automatic`, `manual`, or `imported`. Displayed without inferring a value for older exports. |
+| `confirmationStatus` | No | string or null | `unconfirmed`, `confirmed`, or `corrected`; displayed as exported, never changed by the plugin. |
 
 Point objects:
 
@@ -543,11 +630,74 @@ Point objects:
 | `verticalAccuracy` | No | number or null | Vertical accuracy in meters. |
 | `isOutlier` | No | boolean | Marks a GPS glitch/outlier. Defaults to `false`. |
 
+### Whereday outing-summary JSON
+
+Native **Outings → JSON** exports have an `outings` array rather than a `points`
+array. The plugin renders expandable summary cards and available start/end
+markers. Each summary needs `id`, `startedAt` and `effectiveEndAt` with valid,
+chronologically ordered timestamps. Optional fields include `title`, `endedAt`,
+`durationSeconds`, `distanceMeters`, `pointCount`, `visitCount`, `isInferred`,
+`isActive`, `notes`, `startLatitude`/`startLongitude`, and
+`endLatitude`/`endLongitude`.
+
+````markdown
+```whereday
+source: exports/outings.json
+interactive: true
+show_stats: true
+tile_provider: none
+```
+````
+
+- **Show endpoints** focuses the map on that outing; it does not hide other outings.
+- Summaries without coordinates remain readable, with an explicit explanation.
+- Active recordings are labeled **Active at export**; their latest endpoint and
+  effective end time are an exported snapshot, not a live feed.
+- Day/time filters match the outing's **start** in Obsidian's local timezone, not
+  every day an overnight outing overlaps. Whole-export stats stay unfiltered.
+- Recorded distance stays in the cards. Summary counts are not added to plotted
+  point/visit counts, and recorded distance is not mixed with computed track distance.
+- No straight lines are drawn between endpoints or between outings. To see tracks,
+  export points separately (for example GPX or GeoJSON). Mixing sources does not
+  automatically associate points with outings or split a flat track by outing.
+- `show_outings: false` hides both cards and endpoint markers.
+- Duplicate source paths load once. Identical normalized records are deduplicated across files; outing IDs retain the latest effective endpoint. See the [receipt and identity rules](docs/field-journal.md#living-export-receipt).
+
+See [`examples/synthetic-outings.json`](examples/synthetic-outings.json) for three
+invented completed/inferred/active summaries. Native outing CSV is also supported
+as described below; outing Markdown journals remain unsupported.
+
 ### iso.me CSV
 
 File extension: `.csv`
 
 CSV type is detected by the header row. Combined iso.me CSV exports are also supported; the plugin reads both the `# VISITS` and `# LOCATION POINTS` sections when present.
+
+#### Outings CSV
+
+Native Whereday outing CSV is detected by `id`, `started_at`, and
+`effective_end_at` headers. It uses the same summary cards, start-day/time
+filters, endpoint-only map layer and validation as outing JSON. Optional fields:
+`title`, `ended_at`, `duration_seconds`, `distance_meters`, `point_count`,
+`visit_count`, `is_inferred`, `is_active`, `notes`, `start_latitude`,
+`start_longitude`, `end_latitude`, `end_longitude`. Additional native columns
+such as sequence number and average speed are currently ignored.
+
+Quoted titles/notes (including commas, doubled quotes and multiline notes),
+CRLF files and UTF-8 BOM headers are supported. Missing coordinates retain a
+readable summary. Outing point/visit counts never synthesize tracks or visits.
+A header-only outing CSV is a recognized empty export.
+
+````markdown
+```whereday
+source: exports/outings.csv
+show_stats: true
+interactive: true
+```
+````
+
+The synthetic CSV fixture [`examples/synthetic-outings.csv`](examples/synthetic-outings.csv)
+normalizes to the same summaries as the JSON fixture.
 
 #### Visits CSV
 
@@ -574,6 +724,8 @@ Optional columns:
 | `location_name` | Place name. |
 | `address` | Address. |
 | `notes` | Notes. |
+| `source` | Exported visit provenance. |
+| `confirmation_status` | Exported confirmation state. |
 
 Rows without `arrived_at`, `latitude`, or `longitude` are skipped.
 
@@ -621,10 +773,10 @@ Supported H1 sections:
 
 | H1 | Parsed as |
 |---|---|
-| `# iso.me Export` | Visits. |
+| `# Whereday Export` or `# iso.me Export` | Visits. |
 | `# Visits` | Visits. |
 | Any H1 containing `iso.me` | Visits, unless it is a location-points or complete-export heading. |
-| `# iso.me Location Points Export` | Location points. |
+| `# Whereday Location Points Export` or `# iso.me Location Points Export` | Location points. |
 
 #### Visits Markdown — bullet format
 
@@ -668,7 +820,7 @@ Arrived, Lat, Lon
 Optional columns:
 
 ```text
-Departed, Duration, Location, Address, Notes
+Departed, Duration, Location, Address, Notes, Source, Status
 ```
 
 #### Points Markdown — table format
@@ -692,6 +844,33 @@ Altitude, Speed, Accuracy, Outlier
 ```
 
 `Outlier` is true when the cell is `yes` or `true`.
+
+### Whereday GeoJSON
+
+File extensions: `.geojson`, `.json`
+
+Accepts Whereday's native `FeatureCollection` exports with `Point` geometry and
+`properties.kind` set to `visit` or `point`. Visits, points, and combined exports
+use the same map layers, day/time filters, and stats as JSON exports. GeoJSON
+coordinates are read as `[longitude, latitude, optional altitude]`.
+
+Visit properties: `arrivedAt` (required), `departedAt`, `durationMinutes`,
+`locationName`, `address`, `notes`, `source`, `confirmationStatus`. Point properties: `timestamp` (required),
+`timestampUnix`, `altitude`, `speed`, `horizontalAccuracy`, `isOutlier`.
+Outliers remain excluded from route distance and average speed. Invalid
+coordinates/timestamps and unknown feature kinds or geometries are skipped.
+This is not a general LineString/polygon or Google Timeline importer.
+
+````markdown
+```whereday
+source: exports/day.geojson
+show_stats: true
+interactive: true
+```
+````
+
+A fully synthetic example is in [`examples/synthetic-whereday.geojson`](examples/synthetic-whereday.geojson).
+Folder sources, globs, and date-keyword searches also discover `.geojson` files.
 
 ### OwnTracks JSON
 
@@ -819,6 +998,19 @@ xmlns:isome="https://isome.isolated.tech/gpx/1.0"
 
 ---
 
+## Visit provenance
+
+Whereday's newer exports include visit source and confirmation state. For native
+JSON, GeoJSON, CSV, and Markdown **tables**, marker popups display **Source**
+(Automatic / Manual / Imported) and **Status** (Unconfirmed / Confirmed / Corrected)
+when those fields are present. Unknown future values are shown as escaped text.
+The plugin does not infer missing provenance, change a visit's status, or treat
+an imported visit as device-recorded. Older exports retain their existing popup
+layout. GPX and legacy Markdown bullets do not currently read these fields.
+
+Try [`examples/synthetic-visit-provenance.json`](examples/synthetic-visit-provenance.json)
+for three invented visit states.
+
 ## Layer behavior details
 
 ### Visits
@@ -862,7 +1054,7 @@ When `interactive: true`, filters update map layers but the stats bar remains a 
 
 - Format badge
 - Day selector with **All days** plus every local day present in visits or points
-- Time-of-day range sliders from **Start of day** to **End of day**
+- Labeled **From** / **Until** time sliders from **Start of day** to **End of day**, stacked automatically in narrow note panes
 - 15-minute slider steps
 - Reset button
 
@@ -972,13 +1164,17 @@ The [`examples/`](examples/) directory contains sample export files for all supp
 | `commute-points.md` | Markdown | Points |
 | `owntracks-commute.json` | OwnTracks | GPS points |
 | `overland-commute.json` | Overland | GPS points |
+| `synthetic-whereday.geojson` | Whereday GeoJSON | Synthetic visit + GPS points |
+| `synthetic-outings.json` | Whereday outing JSON | Synthetic summaries and endpoints; no tracks |
+| `synthetic-outings.csv` | Whereday outing CSV | The same synthetic summaries as the JSON fixture |
+| `synthetic-visit-provenance.json` | Whereday visit JSON | Synthetic source and confirmation states |
 | `san-francisco-day.gpx` | GPX | Waypoints + tracks |
 
 ---
 
 ## Troubleshooting
 
-### `iso.me: Missing required source`
+### `Whereday: Missing required source`
 
 Add either `source:` or `sources:` to the block.
 
@@ -1019,6 +1215,15 @@ Make sure the export includes location points. Visit-only exports can show visit
 
 This is intentional. Outliers are always excluded from routes, distance, and average speed.
 
+### Tiles say “API key required” or “Map data not yet available”
+
+Tile availability is controlled by the external provider. During desktop QA,
+the formerly default Carto endpoint returned an API-key notice. Select another provider in
+settings or set a custom URL/attribution for a service you are authorized to use.
+Esri imagery can also be unavailable at close zoom levels; try zooming out or
+setting `auto_fit: false` with a lower `zoom`. A working route overlay does not
+prove that basemap tiles are available. No provider credentials are bundled.
+
 ### OpenStreetMap tiles are blank on desktop
 
 Use CartoDB Voyager, CartoDB Positron, CartoDB Dark Matter, OpenTopoMap, Esri World Imagery, or a custom provider. OSM's standard tile servers reject desktop Obsidian/Electron requests due to referer policy.
@@ -1034,7 +1239,7 @@ Interactive day and time filters use the local timezone of Obsidian when parsing
 - Export files stay in your Obsidian vault.
 - The plugin reads local vault files and renders the map in Obsidian.
 - Basemap tiles are requested from the selected tile provider, so map tile requests may reveal viewed map areas to that provider.
-- Use a custom/self-hosted tile provider if you need stricter privacy.
+- Use `tile_provider: none` for no tile requests, or a custom/self-hosted provider for local basemap context.
 
 ---
 
@@ -1042,6 +1247,7 @@ Interactive day and time filters use the local timezone of Obsidian when parsing
 
 ```bash
 npm install
+npm test             # synthetic parser/config regression tests
 npm run dev          # esbuild watch mode
 npm run build        # type-check and bundle for production
 ```
@@ -1052,7 +1258,7 @@ To test locally, symlink the plugin folder into a test vault:
 ln -s "$PWD" "<test-vault>/.obsidian/plugins/iso-me-maps"
 ```
 
-Reload Obsidian, disable Restricted mode if needed, and enable **iso.me Maps**.
+Reload Obsidian, disable Restricted mode if needed, and enable **Whereday Maps**.
 
 ---
 

@@ -1,7 +1,9 @@
+import { trackSegments } from "../journal";
 import { DetectedFormat, ExportShape, LocationPoint } from "../types";
 
 export interface MapStats {
 	visitCount: number;
+	outingCount: number;
 	pointCount: number;
 	dateRange: { earliest: Date; latest: Date } | null;
 	totalDistanceKm: number;
@@ -17,6 +19,8 @@ const FORMAT_LABELS: Record<DetectedFormat, string> = {
 	owntracks: "OwnTracks",
 	overland: "Overland",
 	gpx: "GPX",
+	geojson: "GeoJSON",
+	"whereday-outings": "Outings",
 	"unknown-json": "JSON",
 };
 
@@ -27,6 +31,8 @@ const FORMAT_CLASSES: Record<DetectedFormat, string> = {
 	owntracks: "iso-me-badge-ot",
 	overland: "iso-me-badge-ol",
 	gpx: "iso-me-badge-gpx",
+	geojson: "iso-me-badge-json",
+	"whereday-outings": "iso-me-badge-json",
 	"unknown-json": "iso-me-badge-json",
 };
 
@@ -86,13 +92,22 @@ export function computeStats(data: ExportShape): MapStats {
 		}
 	}
 
+	for (const outing of data.outings ?? []) {
+		for (const timestamp of [outing.startedAt, outing.effectiveEndAt]) {
+			const d = new Date(timestamp);
+			if (!isNaN(d.getTime())) {
+				if (!earliest || d < earliest) earliest = d;
+				if (!latest || d > latest) latest = d;
+			}
+		}
+	}
+
 	// Total distance (from clean points only)
 	let totalDistanceKm = 0;
-	const cleanPoints = points
-		.filter((p) => !p.isOutlier)
-		.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-	for (let i = 1; i < cleanPoints.length; i++) {
-		totalDistanceKm += distanceBetween(cleanPoints[i - 1], cleanPoints[i]) / 1000;
+	const segments = trackSegments(points);
+	const cleanPoints = segments.reduce<LocationPoint[]>((all,segment) => all.concat(segment),[]);
+	for (const segment of segments) for (let i = 1; i < segment.length; i++) {
+		totalDistanceKm += distanceBetween(segment[i - 1], segment[i]) / 1000;
 	}
 
 	// Average speed (from clean points with speed data)
@@ -119,6 +134,7 @@ export function computeStats(data: ExportShape): MapStats {
 
 	return {
 		visitCount: visits.length,
+		outingCount: data.outings?.length ?? 0,
 		pointCount: points.length,
 		dateRange: earliest && latest ? { earliest, latest } : null,
 		totalDistanceKm,
@@ -140,6 +156,12 @@ export function renderStatsBar(parent: HTMLElement, stats: MapStats): HTMLElemen
 
 	// Stat pills
 	const pillsRow = el.createDiv({ cls: "iso-me-stats-pills" });
+
+	if (stats.outingCount > 0) {
+		const pill = pillsRow.createDiv({ cls: "iso-me-stat-pill" });
+		pill.createSpan({ cls: "iso-me-stat-value", text: String(stats.outingCount) });
+		pill.createSpan({ cls: "iso-me-stat-label", text: stats.outingCount === 1 ? "outing" : "outings" });
+	}
 
 	if (stats.visitCount > 0) {
 		const pill = pillsRow.createDiv({ cls: "iso-me-stat-pill" });

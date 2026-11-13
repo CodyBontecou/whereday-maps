@@ -1,7 +1,8 @@
+import { durationLabel } from "../journal";
 import * as L from "leaflet";
 import { Visit } from "../types";
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
 	return value
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
@@ -42,7 +43,7 @@ function durationOpacity(minutes: number | null | undefined): number {
 	return 0.9;
 }
 
-function buildPopup(visit: Visit): string {
+export function buildVisitPopup(visit: Visit): string {
 	const parts: string[] = [];
 	if (visit.locationName) {
 		parts.push(`<div class="iso-me-popup-title">${escapeHtml(visit.locationName)}</div>`);
@@ -53,11 +54,19 @@ function buildPopup(visit: Visit): string {
 	parts.push(
 		`<div class="iso-me-popup-times">${escapeHtml(fmtDateTime(visit.arrivedAt))} → ${escapeHtml(fmtDateTime(visit.departedAt))}</div>`,
 	);
-	const dur = fmtDuration(visit.durationMinutes);
+	const dur = visit.durationMinutes == null ? "—" : durationLabel(visit.durationMinutes);
 	if (dur !== "—") {
 		parts.push(
 			`<div class="iso-me-popup-duration">Duration: ${escapeHtml(dur)}</div>`,
 		);
+	}
+	const sourceLabels = new Map([["automatic", "Automatic"], ["manual", "Manual"], ["imported", "Imported"]]);
+	const statusLabels = new Map([["unconfirmed", "Unconfirmed"], ["confirmed", "Confirmed"], ["corrected", "Corrected"]]);
+	const provenance: string[] = [];
+	if (visit.source) provenance.push(`Source: ${sourceLabels.get(visit.source) ?? visit.source}`);
+	if (visit.confirmationStatus) provenance.push(`Status: ${statusLabels.get(visit.confirmationStatus) ?? visit.confirmationStatus}`);
+	if (provenance.length) {
+		parts.push(`<div class="iso-me-popup-provenance">${escapeHtml(provenance.join(" · "))}</div>`);
 	}
 	if (visit.notes) {
 		parts.push(`<div class="iso-me-popup-notes">${escapeHtml(visit.notes)}</div>`);
@@ -68,7 +77,7 @@ function buildPopup(visit: Visit): string {
 export function renderVisitMarkers(
 	target: L.LayerGroup,
 	visits: Visit[],
-	color: string,
+	color: string | ((visit: Visit) => string),
 ): L.LatLngTuple[] {
 	const bounds: L.LatLngTuple[] = [];
 
@@ -81,6 +90,7 @@ export function renderVisitMarkers(
 	const durRange = maxDur - minDur;
 
 	for (const v of visits) {
+		const ink = typeof color === "function" ? color(v) : color;
 		const latlng: L.LatLngTuple = [v.latitude, v.longitude];
 		const radius = durationRadius(v.durationMinutes);
 		const opacity = durationOpacity(v.durationMinutes);
@@ -90,12 +100,12 @@ export function renderVisitMarkers(
 
 		L.circleMarker(latlng, {
 			radius,
-			color,
-			fillColor: color,
+			color: ink,
+			fillColor: ink,
 			fillOpacity: opacity,
 			weight,
 		})
-			.bindPopup(buildPopup(v))
+			.bindPopup(buildVisitPopup(v))
 			.addTo(target);
 		bounds.push(latlng);
 	}

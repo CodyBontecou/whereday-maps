@@ -1,0 +1,4 @@
+id,title,sequence_number,started_at,ended_at,effective_end_at,duration_seconds,distance_meters,average_speed_mps,point_count,outlier_count,visit_count,is_inferred,is_active,notes,start_latitude,start_longitude,end_latitude,end_longitude
+synthetic-outing-1,Invented morning walk,1,2026-05-04T08:00:00Z,2026-05-04T08:30:00Z,2026-05-04T08:30:00Z,1800,1500.00,0.833,100,2,1,false,false,Synthetic fixture only. This summary contains no track geometry.,10,20,10.01,20.01
+synthetic-outing-2,Invented inferred outing,2,2026-05-05T08:00:00Z,2026-05-05T08:45:00Z,2026-05-05T08:45:00Z,2700,0.00,,0,0,0,true,false,,,,,
+synthetic-outing-3,Invented active outing,3,2026-05-05T11:00:00Z,,2026-05-05T12:00:00Z,3600,2400.00,,150,0,0,false,true,,10.02,20.02,10.03,20.03

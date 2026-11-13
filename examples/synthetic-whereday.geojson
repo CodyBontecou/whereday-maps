@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "generator": "Whereday",
+  "exportDate": "2026-05-04T12:00:00Z",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [20, 10] },
+      "properties": {
+        "kind": "visit", "arrivedAt": "2026-05-04T08:00:00Z",
+        "departedAt": "2026-05-04T08:30:00Z", "durationMinutes": 30,
+        "locationName": "Synthetic Park", "notes": "Invented fixture; not a real journey."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [20, 10, 12] },
+      "properties": {
+        "kind": "point", "timestamp": "2026-05-04T08:30:00Z",
+        "timestampUnix": 1777883400, "altitude": 12, "speed": 2,
+        "horizontalAccuracy": 5, "isOutlier": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [20.001, 10.001] },
+      "properties": {
+        "kind": "point", "timestamp": "2026-05-04T08:31:00Z",
+        "speed": 3, "horizontalAccuracy": 5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [21, 11] },
+      "properties": {
+        "kind": "point", "timestamp": "2026-05-04T08:32:00Z",
+        "speed": 100, "horizontalAccuracy": 1000, "isOutlier": true
+      }
+    }
+  ]
+}

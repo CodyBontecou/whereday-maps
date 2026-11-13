@@ -1,0 +1,8 @@
+{
+  "exportDate": "2026-05-05T12:00:00Z",
+  "visits": [
+    { "latitude": 10, "longitude": 20, "arrivedAt": "2026-05-04T08:00:00Z", "departedAt": "2026-05-04T08:30:00Z", "durationMinutes": 30, "locationName": "Invented imported stop", "source": "imported", "confirmationStatus": "confirmed", "notes": "Synthetic provenance fixture, not a real visit." },
+    { "latitude": 10.01, "longitude": 20.01, "arrivedAt": "2026-05-04T09:00:00Z", "durationMinutes": 10, "locationName": "Invented manual stop", "source": "manual", "confirmationStatus": "corrected" },
+    { "latitude": 10.02, "longitude": 20.02, "arrivedAt": "2026-05-04T10:00:00Z", "durationMinutes": 5, "locationName": "Invented automatic stop", "source": "automatic", "confirmationStatus": "unconfirmed" }
+  ]
+}

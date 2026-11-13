@@ -1,4 +1,4 @@
-/* iso.me Maps plugin styles */
+/* Whereday Maps plugin styles (legacy class names retained for compatibility). */
 
 /* ===============================================================
    Leaflet 1.9.4 — vendored from node_modules/leaflet/dist/leaflet.css
@@ -655,6 +655,105 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	border: 1px solid var(--background-modifier-border);
 }
 
+.iso-me-map.iso-me-map-offline {
+	background: var(--background-secondary);
+}
+
+.iso-me-basemap-notice {
+	padding: 8px 10px;
+	margin-bottom: 6px;
+	border-left: 2px solid var(--interactive-accent);
+	color: var(--text-muted);
+	font-size: 0.85em;
+}
+
+.iso-me-outings {
+	margin-bottom: 12px;
+}
+.iso-me-outing-caption,
+.iso-me-outing-metrics {
+	color: var(--text-muted);
+	font-size: 0.85em;
+}
+.iso-me-outing-card {
+	padding: 10px 12px;
+	margin: 6px 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	overflow-wrap: anywhere;
+}
+.iso-me-outing-card > summary {
+	cursor: pointer;
+}
+.iso-me-outing-title {
+	font-weight: 600;
+}
+.iso-me-outing-metrics {
+	display: block;
+	margin-top: 4px;
+}
+.iso-me-outing-card > summary:focus-visible,
+.iso-me-outing-card button:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 3px;
+}
+.iso-me-outing-notes {
+	white-space: pre-wrap;
+}
+
+.whereday-atlas-panels {
+	margin: 10px 0;
+	overflow-wrap: anywhere;
+}
+.whereday-atlas-panels > div {
+	margin: 8px 0;
+	padding: 10px 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+}
+.whereday-atlas-panels h5 {
+	margin: 0 0 8px;
+	font-size: 1em;
+}
+.whereday-caption {
+	font-size: 0.85em;
+	color: var(--text-muted);
+}
+.whereday-visit-list ol {
+	max-height: 320px;
+	overflow-y: auto;
+	padding-inline-start: 24px;
+	margin: 4px 0;
+}
+.whereday-visit-list li {
+	margin: 8px 0;
+	padding-inline-end: 4px;
+}
+.iso-me-block button.whereday-visit-focus {
+	white-space: normal;
+	height: auto;
+	text-align: start;
+	max-width: 100%;
+	padding: 6px 8px;
+}
+.whereday-visit-list li > span,
+.whereday-visit-list li > a {
+	display: block;
+	margin-top: 4px;
+}
+.iso-me-block input.whereday-playback-range {
+	width: 100%;
+	margin: 14px 0 4px;
+}
+.whereday-atlas-panels button:focus-visible,
+.whereday-atlas-panels input:focus-visible,
+.whereday-atlas-panels a:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 3px;
+}
+
 .iso-me-error {
 	padding: 12px 14px;
 	border-radius: 6px;
@@ -690,6 +789,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	font-size: 12px;
 	color: #444444;
 }
+.iso-me-popup-provenance {
+	font-size: 12px;
+	margin-top: 6px;
+}
+
 .iso-me-popup-notes {
 	font-size: 12px;
 	margin-top: 6px;
@@ -714,11 +818,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	display: flex;
 	align-items: center;
 	gap: 6px;
+	min-width: 0;
+	max-width: 100%;
 }
 
 .iso-me-time-control {
-	flex: 1 1 280px;
-	min-width: 240px;
+	flex: 1 0 100%;
+	flex-direction: column;
+	align-items: stretch;
 }
 
 .iso-me-control-label {
@@ -734,29 +841,46 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	border-radius: 4px;
 	padding: 2px 6px;
 	font-size: inherit;
-	max-width: 220px;
-}
-
-.iso-me-time-sliders {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	flex: 1;
+	max-width: min(220px, 100%);
 	min-width: 0;
 }
 
-.iso-me-time-range {
-	flex: 1;
-	min-width: 60px;
+.iso-me-time-sliders {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+	gap: 10px 20px;
+	min-width: 0;
+}
+
+.iso-me-time-bound {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap: 4px 8px;
+	min-width: 0;
+}
+
+.iso-me-block input.iso-me-time-range {
+	grid-column: 1 / -1;
+	width: 100%;
+	min-width: 0;
+	margin: 4px 0;
 	accent-color: var(--interactive-accent);
+}
+
+.iso-me-time-range:focus-visible,
+.iso-me-day-select:focus-visible,
+.iso-me-control-reset:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 3px;
 }
 
 .iso-me-time-label {
 	color: var(--text-muted);
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
-	min-width: 78px;
-	text-align: center;
+	min-width: 0;
+	text-align: right;
 }
 
 .iso-me-control-reset {
@@ -894,3 +1018,126 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .iso-me-legend-item span {
 	white-space: nowrap;
 }
+
+/* Field journal: local system fallbacks, no remote fonts. */
+.iso-me-block {
+  --wd-paper: var(--background-primary); --wd-card: var(--background-secondary);
+  --wd-text: var(--text-normal); --wd-muted: var(--text-muted); --wd-border: var(--background-modifier-border);
+  --wd-accent: var(--interactive-accent); --wd-ink-0: #1e2b45; --wd-ink-1: #c2462a; --wd-ink-2: #b7862b; --wd-ink-3: #5e7f5a;
+}
+.iso-me-block.wd-appearance {
+  --wd-paper: #f3efe6; --wd-card: #fbf9f4; --wd-text: #1e2b45; --wd-muted: #66645d;
+  --wd-border: #d8d2c3; --wd-accent: #1e2b45;
+  background: var(--wd-paper); color: var(--wd-text); padding: clamp(12px, 3cqw, 28px); border: 1px solid var(--wd-border); border-radius: 12px;
+}
+.theme-dark .iso-me-block {
+  --wd-ink-0: #ece6d8; --wd-ink-1: #f0805f; --wd-ink-2: #e0b565; --wd-ink-3: #9dc097;
+}
+.theme-dark .iso-me-block.wd-appearance {
+  --wd-paper: #0f1626; --wd-card: #18213a; --wd-text: #ece6d8; --wd-muted: #9aa3b8;
+  --wd-border: #2c3754; --wd-accent: #e0b565;
+}
+.wd-ink-0 { --wd-place-ink: var(--wd-ink-0); }
+.wd-ink-1 { --wd-place-ink: var(--wd-ink-1); }
+.wd-ink-2 { --wd-place-ink: var(--wd-ink-2); }
+.wd-ink-3 { --wd-place-ink: var(--wd-ink-3); }
+.iso-me-block .wd-journal { color: var(--wd-text); }
+.iso-me-block .wd-journal-header h3 { font-family: "Newsreader", Georgia, serif; font-size: clamp(1.7em, 6cqw, 2.5em); font-weight: 500; line-height: 1.12; margin: .4em 0 .8em; color: var(--wd-text); }
+.iso-me-block .wd-eyebrow { letter-spacing: .14em; font-size: .7em; font-family: "IBM Plex Mono", ui-monospace, monospace; color: var(--wd-muted); }
+.iso-me-block .wd-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .8em; font-variant-numeric: tabular-nums; }
+.iso-me-block .wd-muted { color: var(--wd-muted); font-size: .85em; line-height: 1.6; }
+.iso-me-block .wd-row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 12px 0; }
+.iso-me-block .wd-field { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; min-width: 0; flex: 1 1 160px; font-size: .85em; }
+.iso-me-block .wd-field input, .iso-me-block .wd-field select { width: 100%; max-width: 100%; min-height: 44px; background: var(--wd-card); color: var(--wd-text); border: 1px solid var(--wd-border); box-shadow: none; }
+.iso-me-block .wd-field:has(input[type=checkbox]) { flex-direction: row; align-items: center; gap: 12px; }
+.iso-me-block .wd-field input[type=checkbox] { width: 22px; height: 22px; min-height: 22px; flex-shrink: 0; }
+.iso-me-block .wd-journal button, .iso-me-block .wd-receipt button { white-space: normal; height: auto; min-height: 40px; margin: 4px 8px 4px 0; padding: 9px 13px; border: 1px solid var(--wd-border); border-radius: 10px; box-shadow: none; background: var(--wd-card); color: var(--wd-text); overflow-wrap: anywhere; }
+.iso-me-block .wd-journal button:active { background: var(--wd-border); }
+.iso-me-block .wd-journal button:disabled { opacity: .55; }
+.iso-me-block .wd-journal :focus-visible, .iso-me-block .wd-receipt :focus-visible { outline: 2px solid var(--wd-accent); outline-offset: 3px; }
+.iso-me-block .wd-disclosure { margin: 16px 0; padding: 16px; border: 1px solid var(--wd-border); border-radius: 10px; background: var(--wd-card); }
+.iso-me-block .wd-disclosure > summary { font-family: "Newsreader", Georgia, serif; font-size: 1.2em; cursor: pointer; min-height: 32px; overflow-wrap: anywhere; }
+.iso-me-block .wd-disclosure-body details { border-bottom: 1px solid var(--wd-border); margin: 8px 0; padding: 8px 0; }
+.iso-me-block .wd-disclosure-body summary { cursor: pointer; overflow-wrap: anywhere; }
+.iso-me-block .wd-evidence dl { display: grid; grid-template-columns: minmax(90px, .8fr) minmax(0, 1.5fr); gap: 6px 12px; font-size: .8em; }
+.iso-me-block .wd-evidence dt { color: var(--wd-muted); overflow-wrap: anywhere; }
+.iso-me-block .wd-evidence dd { margin: 0; overflow-wrap: anywhere; }
+.iso-me-block .wd-status { overflow-wrap: anywhere; font-size: .85em; }
+.iso-me-block .wd-status:empty { display: none; }
+.iso-me-block .wd-stops { padding: 0; list-style: none; }
+.iso-me-block .wd-stop { border-left: 3px solid var(--wd-place-ink); margin: 14px 0; padding-left: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.iso-me-block .wd-stop button:first-child { background: transparent; border: 0; text-align: left; padding-left: 0; font-weight: 600; }
+.iso-me-block .wd-stop small { flex-basis: 100%; }
+.iso-me-block .wd-receipt { padding: 0 0 16px; margin: 0 0 20px; border-bottom: 1px solid var(--wd-border); overflow-wrap: anywhere; }
+.iso-me-block .wd-receipt p { margin: 6px 0; }
+.iso-me-block .wd-receipt details { font-size: .8em; }
+.iso-me-block .wd-dial { position: relative; width: min(100%, 270px); aspect-ratio: 1; margin: 30px auto; border: 1px solid var(--wd-border); border-radius: 50%; background: var(--wd-card); }
+.iso-me-block .wd-dial-arc { position: absolute; border-radius: 50%; mask: radial-gradient(transparent calc(70% - 8px), #000 calc(70% - 7px)); -webkit-mask: radial-gradient(transparent calc(70% - 8px), #000 calc(70% - 7px)); }
+.iso-me-block .wd-dial-tick { position: absolute; top: 2%; left: calc(50% - .5px); width: 1px; height: 4%; background: var(--wd-muted); transform-origin: 50% 1200%; }
+.iso-me-block .wd-dial-center { position: absolute; inset: 35%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; text-align: center; }
+.iso-me-block .wd-dial-center strong { font-family: "Newsreader", Georgia, serif; font-size: 1.3em; font-weight: 500; }
+.iso-me-block .wd-membership { max-height: 260px; overflow: auto; padding: 4px; }
+@container (max-width: 380px) {
+  .iso-me-block .wd-evidence dl { display: block; }
+  .iso-me-block .wd-evidence dd { margin: 4px 0 12px; }
+  .iso-me-block .wd-disclosure { padding: 12px; }
+}
+
+.iso-me-block.wd-appearance .iso-me-basemap-notice { color: var(--wd-muted); border-color: var(--wd-accent); }
+
+.iso-me-block:has(.wd-journal) { container-type: inline-size; }
+
+/* Small independent figures. No journal panels or generated-note actions. */
+.iso-me-block.wd-viz-block { width: 100%; max-width: 540px; padding: 16px; margin: 12px 0; box-sizing: border-box; container-type: inline-size; }
+.iso-me-block.wd-viz-day-dial-block { max-width: 320px; }
+.iso-me-block.wd-viz-return-calendar-block { max-width: 340px; }
+.wd-viz { color: var(--wd-text); font-size: var(--font-text-size, 16px); }
+.wd-viz-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.iso-me-block .wd-viz-header h3 { font-family: "Newsreader", Georgia, serif; font-weight: 500; font-size: 1.25em; line-height: 1.2; color: var(--wd-text); margin: 0; overflow-wrap: anywhere; }
+.wd-viz-date { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; }
+.iso-me-block .wd-viz input, .iso-me-block .wd-viz select { color: var(--wd-text); background: var(--wd-card); border: 1px solid var(--wd-border); box-sizing: border-box; box-shadow: none; }
+.iso-me-block .wd-viz-date input { width: 124px; min-width: 0; height: 32px; padding: 3px; font-size: .75em; border-radius: 6px; }
+.iso-me-block .wd-viz button { color: var(--wd-text); background: var(--wd-card); box-shadow: none; border: 1px solid var(--wd-border); border-radius: 6px; padding: 4px 8px; height: auto; min-height: 30px; font-size: .8em; cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
+.iso-me-block .wd-viz button:disabled { opacity: .45; cursor: default; }
+.iso-me-block .wd-viz-date button { width: 28px; min-height: 32px; padding: 0; font-size: 1em; }
+.iso-me-block .wd-viz :focus-visible { outline: 2px solid var(--wd-accent); outline-offset: 2px; }
+.wd-viz-selection { min-height: 38px; margin: 8px 0; font-size: .78em; line-height: 1.5; overflow-wrap: anywhere; }
+.wd-viz-selection strong { display: block; font-weight: 600; }
+.wd-viz-selection span { display: block; color: var(--wd-muted); font-size: .95em; }
+.wd-viz-caption, .wd-viz-route-position { font-family: "IBM Plex Mono", ui-monospace, monospace; color: var(--wd-muted); font-size: .65em; line-height: 1.5; margin: 8px 0 0; overflow-wrap: anywhere; }
+.wd-viz-info { font-size: .7em; color: var(--wd-muted); margin-top: 10px; overflow-wrap: anywhere; }
+.wd-viz-info summary { cursor: pointer; }
+.wd-viz-info p { line-height: 1.6; margin: 8px 0 0; }
+.iso-me-block .wd-viz .wd-viz-stay-select, .iso-me-block .wd-viz-place-select { display: block; width: 100%; min-width: 0; max-width: 100%; height: 30px; font-size: .75em; text-overflow: ellipsis; margin: 8px 0; }
+.wd-viz-strip-scroll { max-height: 100px; overflow-y: auto; overflow-x: hidden; border-radius: 5px; background: repeating-linear-gradient(135deg, transparent, transparent 4px, var(--wd-border) 5px, transparent 6px); }
+.wd-viz-strip-track { position: relative; min-height: 20px; }
+.iso-me-block .wd-viz .wd-viz-stay { position: absolute; background: var(--wd-place-ink); border: 0; border-radius: 3px; min-height: 14px; height: 14px; padding: 0; min-width: 1px; opacity: .8; }
+.iso-me-block .wd-viz .wd-viz-stay:focus-visible, .iso-me-block .wd-viz .wd-viz-stay:hover { opacity: 1; outline-offset: 1px; }
+.wd-viz-axis { display: flex; justify-content: space-between; padding-top: 5px; font: .6em "IBM Plex Mono", ui-monospace, monospace; color: var(--wd-muted); }
+.wd-viz-clock { width: 100%; max-width: 220px; display: block; margin: 0 auto; }
+.wd-viz-dial-track { fill: none; stroke: var(--wd-border); stroke-width: 10px; }
+.wd-viz-dial-stay { fill: none; stroke: var(--wd-place-ink); stroke-width: 6px; cursor: pointer; pointer-events: stroke; }
+.wd-viz-clock-tick { stroke: var(--wd-muted); stroke-width: 1px; }
+.wd-viz-clock-date { fill: var(--wd-text); font: 14px Georgia, serif; }
+.wd-viz-clock-count { fill: var(--wd-muted); font: 9px ui-monospace, monospace; }
+.wd-viz-calendar { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; }
+.wd-viz-weekday { font-size: .65em; color: var(--wd-muted); text-align: center; }
+.iso-me-block .wd-viz .wd-viz-calendar-day { position: relative; isolation: isolate; aspect-ratio: 1; min-height: 24px; padding: 0; border-color: transparent; font: .75em ui-monospace, monospace; }
+.wd-viz-calendar-day::before, .wd-viz-rhythm-cell::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--wd-accent); opacity: var(--wd-density); }
+.iso-me-block .wd-viz .wd-viz-calendar-day[aria-current=date] { border-color: var(--wd-accent); }
+.wd-viz-rhythm-key { display: flex; justify-content: space-between; margin-left: 18px; margin-bottom: 6px; color: var(--wd-muted); font: .6em ui-monospace, monospace; }
+.wd-viz-rhythm-row { display: grid; grid-template-columns: 14px repeat(24,minmax(0,1fr)); gap: 2px; align-items: center; margin-bottom: 3px; }
+.iso-me-block .wd-viz .wd-viz-rhythm-cell { position: relative; isolation: isolate; width: 100%; min-width: 0; height: 14px; min-height: 14px; padding: 0; border: 0; border-radius: 2px; background: var(--wd-border); }
+.wd-viz-route-map { width: 100%; border-radius: 7px; overflow: hidden; background: var(--wd-card); }
+.wd-viz-map-local { background-color: var(--wd-card); background-image: linear-gradient(var(--wd-border) 1px,transparent 1px),linear-gradient(90deg,var(--wd-border) 1px,transparent 1px); background-size: 32px 32px; }
+.wd-viz-route-controls { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.iso-me-block .wd-viz-route-controls input[type=range] { flex: 1; min-width: 40px; width: 0; padding: 0; accent-color: var(--wd-accent); }
+.wd-viz-empty { font-size: .8em; color: var(--wd-muted); margin: 16px 0; }
+@media (prefers-reduced-motion: reduce) { .wd-viz *, .wd-viz *::before { scroll-behavior: auto; animation: none; transition: none; } }
+
+.iso-me-block .wd-viz-date input { width: 9em; }
+.iso-me-block .wd-viz-date button { width: 24px; }
+.wd-viz-clock { max-width: 180px; }
+.wd-viz-selection strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iso-me-block .wd-viz-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; clip-path: inset(50%); overflow: hidden; }
+.wd-viz-route-map { margin-top: 8px; }

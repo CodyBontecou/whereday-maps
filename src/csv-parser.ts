@@ -1,4 +1,6 @@
-import { ExportShape, LocationPoint, Visit } from "./types";
+import { visitEvidenceJSON } from "./provenance";
+import { ExportShape, LocationPoint, Visit, Outing } from "./types";
+import { parseOutings } from "./outing-parser";
 
 export class CSVParseError extends Error {
 	constructor(message: string) {
@@ -103,7 +105,7 @@ function isPointsCSV(headers: Map<string, number>): boolean {
 	return headers.has("timestamp") && headers.has("latitude") && headers.has("longitude");
 }
 
-type CSVSectionKind = "visits" | "points";
+type CSVSectionKind = "visits" | "points" | "outings";
 
 interface CSVSection {
 	kind: CSVSectionKind;
@@ -112,6 +114,7 @@ interface CSVSection {
 }
 
 function csvSectionKind(headers: Map<string, number>): CSVSectionKind | null {
+	if (headers.has("id") && headers.has("started_at") && headers.has("effective_end_at")) return "outings";
 	if (isVisitsCSV(headers)) return "visits";
 	if (isPointsCSV(headers)) return "points";
 	return null;
@@ -166,6 +169,7 @@ function parseVisits(rows: string[][], headers: Map<string, number>): Visit[] {
 		if (!arrivedAt || lat === null || lon === null) continue;
 
 		visits.push({
+			...visitEvidenceJSON(cell(row, headers, "visit_metadata")),
 			latitude: lat,
 			longitude: lon,
 			arrivedAt,
@@ -174,6 +178,8 @@ function parseVisits(rows: string[][], headers: Map<string, number>): Visit[] {
 			locationName: toString(cell(row, headers, "location_name")),
 			address: toString(cell(row, headers, "address")),
 			notes: toString(cell(row, headers, "notes")),
+			source: toString(cell(row, headers, "source")),
+			confirmationStatus: toString(cell(row, headers, "confirmation_status")),
 		});
 	}
 	return visits;
@@ -208,6 +214,28 @@ function parsePoints(rows: string[][], headers: Map<string, number>): LocationPo
 	return points;
 }
 
+function parseOutingsCSV(rows: string[][], headers: Map<string, number>): Outing[] {
+	// Reuse JSON's native-schema validation; counts/endpoints never become tracks.
+	return parseOutings(rows.slice(1).map((row) => ({
+		id: cell(row, headers, "id"),
+		title: cell(row, headers, "title"),
+		startedAt: cell(row, headers, "started_at"),
+		endedAt: cell(row, headers, "ended_at"),
+		effectiveEndAt: cell(row, headers, "effective_end_at"),
+		durationSeconds: toFiniteNumber(cell(row, headers, "duration_seconds")),
+		distanceMeters: toFiniteNumber(cell(row, headers, "distance_meters")),
+		pointCount: toFiniteNumber(cell(row, headers, "point_count")),
+		visitCount: toFiniteNumber(cell(row, headers, "visit_count")),
+		isInferred: toBool(cell(row, headers, "is_inferred")),
+		isActive: toBool(cell(row, headers, "is_active")),
+		notes: toString(cell(row, headers, "notes")),
+		startLatitude: toFiniteNumber(cell(row, headers, "start_latitude")),
+		startLongitude: toFiniteNumber(cell(row, headers, "start_longitude")),
+		endLatitude: toFiniteNumber(cell(row, headers, "end_latitude")),
+		endLongitude: toFiniteNumber(cell(row, headers, "end_longitude")),
+	})));
+}
+
 export function parseExportCSV(text: string): ExportShape {
 	const rows = parseCSV(text);
 	if (rows.length === 0) {
@@ -219,22 +247,26 @@ export function parseExportCSV(text: string): ExportShape {
 	if (sections.length > 0) {
 		let visits: Visit[] | null = null;
 		let points: LocationPoint[] | null = null;
+		let outings: Outing[] | undefined;
 
 		for (const section of sections) {
 			if (section.kind === "visits") {
 				const parsed = parseVisits(section.rows, section.headers);
 				visits = visits === null ? parsed : visits.concat(parsed);
+			} else if (section.kind === "outings") {
+				const parsed = parseOutingsCSV(section.rows, section.headers);
+				outings = outings ? outings.concat(parsed) : parsed;
 			} else {
 				const parsed = parsePoints(section.rows, section.headers);
 				points = points === null ? parsed : points.concat(parsed);
 			}
 		}
 
-		return { visits, points };
+		return { visits, points, outings };
 	}
 
 	const headerRow = rows.find((row) => !isCommentRow(row)) ?? rows[0];
 	throw new CSVParseError(
-		`Unrecognized CSV header. Expected iso.me visits (arrived_at,...), points (timestamp,latitude,longitude,...), or combined CSV sections. Got: ${headerRow.join(",")}`,
+		`Unrecognized CSV header. Expected Whereday visits (arrived_at,...), points (timestamp,latitude,longitude,...), outings (id,started_at,effective_end_at,...), or combined CSV sections. Got: ${headerRow.join(",")}`,
 	);
 }
